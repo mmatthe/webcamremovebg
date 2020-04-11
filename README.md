@@ -1,6 +1,6 @@
 # WebCam Remove Background
 
-A Python script to remove background of a webcam image and stream the result into a virtual video device. The background removal is based on face detection within each image.
+A Python script to remove background of a webcam image and stream the result into a virtual video device. The background removal is based on face detection with OpenCV within each image.
 
 ## Requirements
 - Tested with Python 3.7
@@ -19,12 +19,12 @@ A Python script to remove background of a webcam image and stream the result int
 See `python removeCamBg.py --help`.
 
 ## Example Result
-Holding a newspaper in front of the camera yields these results:
+Holding a newspaper in front of the camera yields these results.
 
 Input image:
 
 ![](doc/before.png)
 
-Output image:
+Output image with some blending.
 
 ![](doc/after.png)
