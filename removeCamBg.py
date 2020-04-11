@@ -19,6 +19,7 @@ def parseArgs():
     parser.add_argument('-u', '--mask-update', help="Update the face mask every u frames", default=3, type=int)
     parser.add_argument('-d', '--mask-decay', help="Upon losing the face, how fast shall the face fade away. Between 0 and 1. 0 Means to delete mask immediately, 1 means keep mask forever.", default=0.1, type=float)
     parser.add_argument('-m', '--mask-max', help="Maximum blending factor of the detected face, between 0 and 1. 1 means the face is not transparent at all. 0 means face it not visible at all", type=float, default=1)
+    parser.add_argument('-c', '--camera-id', help="Id of the video capturing device to open. Will use 0 by default, that will open the default backend camera.", default=0, type=int)
     parser.add_argument("--debug", help="If set, show the resulting image in a debug window", action='store_true', default=False)
 
     return parser.parse_args()
@@ -45,7 +46,7 @@ def main():
 
     camera = pyfakewebcam.FakeWebcam('/dev/video20', W, H)
 
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(args.camera_id)
 
     face_cascade = cv2.CascadeClassifier(os.path.join(os.path.dirname(__file__), 'haarcascade_frontalface_default.xml'))
 
