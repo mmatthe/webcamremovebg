@@ -81,6 +81,7 @@ def main():
         result = (bgImg * (1-fgMask_float) + img * (fgMask_float)).astype(np.uint8)
 
         if args.debug:
+            cv2.imshow("input", img)
             cv2.imshow("result", result)
             cv2.waitKey(1)
 

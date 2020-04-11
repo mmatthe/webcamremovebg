@@ -17,3 +17,14 @@ A Python script to remove background of a webcam image and stream the result int
 
 ## Command line arguments
 See `python removeCamBg.py --help`.
+
+## Example Result
+Holding a newspaper in front of the camera yields these results:
+
+Input image:
+
+![](doc/before.png)
+
+Output image:
+
+![](doc/after.png)
