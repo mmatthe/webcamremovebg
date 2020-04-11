@@ -18,6 +18,34 @@ A Python script to remove background of a webcam image and stream the result int
 ## Command line arguments
 See `python removeCamBg.py --help`.
 
+```
+usage: removeCamBg.py [-h] [-b BACKGROUND] [-u MASK_UPDATE] [-d MASK_DECAY]
+                      [-m MASK_MAX] [-c CAMERA_ID] [--debug]
+
+Read a webcam image and replace all background with pixels from a custom
+image.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b BACKGROUND, --background BACKGROUND
+                        Filename of the background image. By default, it's a
+                        noisy image
+  -u MASK_UPDATE, --mask-update MASK_UPDATE
+                        Update the face mask every u frames
+  -d MASK_DECAY, --mask-decay MASK_DECAY
+                        Upon losing the face, how fast shall the face fade
+                        away. Between 0 and 1. 0 Means to delete mask
+                        immediately, 1 means keep mask forever.
+  -m MASK_MAX, --mask-max MASK_MAX
+                        Maximum blending factor of the detected face, between
+                        0 and 1. 1 means the face is not transparent at all. 0
+                        means face it not visible at all
+  -c CAMERA_ID, --camera-id CAMERA_ID
+                        Id of the video capturing device to open. Will use 0
+                        by default, that will open the default backend camera.
+  --debug               If set, show the resulting image in a debug window
+```
+
 ## Example Result
 Holding a newspaper in front of the camera yields these results.
 
