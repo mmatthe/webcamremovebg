@@ -4,9 +4,13 @@ import pyfakewebcam
 import numpy as np
 import cv2
 import argparse
+import time
+import logging
 
 W = 640  # Picture width
 H = 480  # Picture height
+
+logging.basicConfig(level=logging.INFO)
 
 def parseArgs():
     parser = argparse.ArgumentParser(description="Read a webcam image and replace all background with pixels from a custom image.")
@@ -48,6 +52,8 @@ def main():
 
     nr = 0
     fgMask_float = 0
+    framesInLastSec = 0
+    start = time.time()
     while True:
         ret_val, img = cam.read()
         if nr % args.mask_update == 0:
@@ -78,9 +84,14 @@ def main():
             cv2.imshow("result", result)
             cv2.waitKey(1)
 
-        camera.schedule_frame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
-
         nr = nr + 1
+        framesInLastSec = framesInLastSec + 1
+        if time.time() - start > 1:
+            logging.info(f"Processed {framesInLastSec} frames in 1 second")
+            framesInLastSec = 0
+            start = time.time()
+
+        camera.schedule_frame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
 
 if __name__ == '__main__':
     main()
