@@ -20,6 +20,7 @@ def parseArgs():
     parser.add_argument('-d', '--mask-decay', help="Upon losing the face, how fast shall the face fade away. Between 0 and 1. 0 Means to delete mask immediately, 1 means keep mask forever.", default=0.1, type=float)
     parser.add_argument('-m', '--mask-max', help="Maximum blending factor of the detected face, between 0 and 1. 1 means the face is not transparent at all. 0 means face it not visible at all", type=float, default=1)
     parser.add_argument('-c', '--camera-id', help="Id of the video capturing device to open. Will use 0 by default, that will open the default backend camera.", default=0, type=int)
+    parser.add_argument('-s', '--scale-mask', help="Scale the area of the detected face by this factor", default=1, type=float)
     parser.add_argument("--debug", help="If set, show the resulting image in a debug window", action='store_true', default=False)
 
     return parser.parse_args()
@@ -73,7 +74,7 @@ def main():
                     biggest = dim
             if biggest is not None:
                 (x, y, w, h) = biggest
-                cv2.ellipse(fgMask, (x+w//2, y+h//2), (int(w/1.5), int(h/1.2)), 0, 0, 360, 255, -1)
+                cv2.ellipse(fgMask, (x+w//2, y+h//2), (int(w//1.5*args.scale_mask), int(h/1.2*args.scale_mask)), 0, 0, 360, 255, -1)
                 fgMask_float = cv2.GaussianBlur(fgMask / 256., (51, 51), 0) * args.mask_max
                 fgMask_float = np.dstack([fgMask_float]*3)
             else:
