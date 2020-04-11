@@ -15,6 +15,7 @@ def parseArgs():
     parser.add_argument('-u', '--mask-update', help="Update the face mask every u frames", default=3, type=int)
     parser.add_argument('-d', '--mask-decay', help="Upon losing the face, how fast shall the face fade away. Between 0 and 1. 0 Means to delete mask immediately, 1 means keep mask forever.", default=0.1, type=float)
     parser.add_argument('-m', '--mask-max', help="Maximum blending factor of the detected face, between 0 and 1. 1 means the face is not transparent at all. 0 means face it not visible at all", type=float, default=1)
+    parser.add_argument("--debug", help="If set, show the resulting image in a debug window", action='store_true', default=False)
 
     return parser.parse_args()
 
@@ -70,12 +71,12 @@ def main():
                 fgMask_float = np.dstack([fgMask_float]*3)
             else:
                 fgMask_float *= args.mask_decay
-            # result = bgImg.copy()
 
         result = (bgImg * (1-fgMask_float) + img * (fgMask_float)).astype(np.uint8)
 
-        cv2.imshow("result", result)
-        cv2.waitKey(1)
+        if args.debug:
+            cv2.imshow("result", result)
+            cv2.waitKey(1)
 
         camera.schedule_frame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
 
