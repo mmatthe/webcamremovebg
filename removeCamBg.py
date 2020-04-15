@@ -27,67 +27,83 @@ def parseArgs():
 
     return None
 
-def createNoisyBg(W, H):
-    X = np.random.rand(H, W) * 256
-    return np.dstack([X]*3)
+class MaskBackground:
+    def __init__(self, args):
+        self.args = args
+
+        self.bgImg = self.loadBgImage(args.background)
+        self.face_cascade = cv2.CascadeClassifier(os.path.join(os.path.dirname(__file__), 'haarcascade_frontalface_default.xml'))
+
+        self.nr = 0
+        self.fgMask_float = 0
+
+    def createNoisyBg(self, W, H):
+        X = np.random.rand(H, W) * 256
+        return np.dstack([X]*3)
 
 
-def loadBgImage(bgFile):
-    if bgFile is not None:
-        bg = cv2.imread(bgFile, cv2.IMREAD_COLOR)
-    else:
-        bg = createNoisyBg(W, H)
-    return cv2.resize(bg, (W, H))
+    def loadBgImage(self, bgFile):
+        if bgFile is not None:
+            bg = cv2.imread(bgFile, cv2.IMREAD_COLOR)
+        else:
+            bg = self.createNoisyBg(W, H)
+        return cv2.resize(bg, (W, H))
 
 
-def main():
-    args = parseArgs()
-    print (args)
-    bgImg = loadBgImage(args.background)
-
-    camera = pyfakewebcam.FakeWebcam('/dev/video20', W, H)
-
-    cam = cv2.VideoCapture(args.camera_id)
-
-    face_cascade = cv2.CascadeClassifier(os.path.join(os.path.dirname(__file__), 'haarcascade_frontalface_default.xml'))
-
-
-    nr = 0
-    fgMask_float = 0
-    framesInLastSec = 0
-    start = time.time()
-    while True:
-        ret_val, img = cam.read()
-        if nr % args.mask_update == 0:
+    def run(self, img):
+        if self.nr % self.args.mask_update == 0:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # Detect faces
-            faces = face_cascade.detectMultiScale(gray, 1.5, 4)
+            faces = self.face_cascade.detectMultiScale(gray, 1.5, 4)
             img2 = img / 256.0
 
             fgMask  = np.zeros((480, 640), dtype=np.uint8)
             wMax = 0
             biggest = None
+
+            # Code review: Extract rect extraction into extra function
             for dim in faces:
                 if dim[2] > wMax:
                     wMax = dim[2]
                     biggest = dim
             if biggest is not None:
                 (x, y, w, h) = biggest
-                cv2.ellipse(fgMask, (x+w//2, y+h//2), (int(w//1.5*args.scale_mask), int(h/1.2*args.scale_mask)), 0, 0, 360, 255, -1)
-                fgMask_float = cv2.GaussianBlur(fgMask / 256., (51, 51), 0) * args.mask_max
-                fgMask_float = np.dstack([fgMask_float]*3)
+                cv2.ellipse(fgMask, (x+w//2, y+h//2), (int(w//1.5*self.args.scale_mask), int(h/1.2*self.args.scale_mask)), 0, 0, 360, 255, -1)
+                self.fgMask_float = cv2.GaussianBlur(fgMask / 256., (51, 51), 0) * self.args.mask_max
+                self.fgMask_float = np.dstack([self.fgMask_float]*3)
             else:
-                fgMask_float *= args.mask_decay
+                self.fgMask_float *= self.args.mask_decay
 
-        result = (bgImg * (1-fgMask_float) + img * (fgMask_float)).astype(np.uint8)
+        result = (self.bgImg * (1-self.fgMask_float) + img * (self.fgMask_float)).astype(np.uint8)
 
+        self.nr = self.nr + 1
+        return result
+
+
+def main():
+    args = parseArgs()
+    print (args)
+
+    camera = pyfakewebcam.FakeWebcam('/dev/video20', W, H)
+
+    cam = cv2.VideoCapture(args.camera_id)
+
+    masker = MaskBackground(args)
+
+    framesInLastSec = 0
+    start = time.time()
+    while True:
+        ret_val, img = cam.read()
+
+        result = masker.run(img)
+
+        # Code review: Extract debug stuff into extra function
         if args.debug:
             cv2.imshow("input", img)
             cv2.imshow("result", result)
             cv2.waitKey(1)
 
-        nr = nr + 1
         framesInLastSec = framesInLastSec + 1
         if time.time() - start > 1:
             logging.info(f"Processed {framesInLastSec} frames in 1 second")
